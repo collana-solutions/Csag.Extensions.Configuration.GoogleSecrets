@@ -1,4 +1,4 @@
-﻿namespace Neolution.Extensions.Configuration.GoogleSecrets
+﻿namespace Csag.Extensions.Configuration.GoogleSecrets
 {
     /// <summary>
     /// Contains the names of environment variables used for Google Secrets configuration.

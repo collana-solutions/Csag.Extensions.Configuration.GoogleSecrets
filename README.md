@@ -1,13 +1,20 @@
-# Neolution.Extensions.Configuration.GoogleSecrets
+# Csag.Extensions.Configuration.GoogleSecrets
 
 This package is a configuration provider that injects google secrets into the `Microsoft.Extensions.Configuration`.
+
+| Package | Description |
+| ------- | ----------- |
+| `Csag.Extensions.Configuration.GoogleSecrets` | The configuration provider and the `AddGoogleSecrets` extension on `IConfigurationBuilder`. Targets .NET Standard 2.1. |
+| `Csag.Extensions.Configuration.GoogleSecrets.AspNetCore` | The `AddGoogleSecrets` extension on the ASP.NET Core `WebApplicationBuilder`. Targets .NET 8. |
+
+Up to version 1.6.0 the packages were published as `Neolution.Extensions.Configuration.GoogleSecrets` and `Neolution.Extensions.Configuration.GoogleSecrets.AspNetCore`, with the `Neolution.Extensions.Configuration.GoogleSecrets` namespace. See the [changelog](Csag.Extensions.Configuration.GoogleSecrets/CHANGELOG.md) for the migration.
 
 It is not recommended to store secrets like connection strings in the source code directly or in environment variables. The better approach is to use a secret provider like the [secret manager](https://cloud.google.com/secret-manager) for the google cloud eco system.
 
 ## Usage
 
 Install the package using your favourite method, for example:
-`dotnet add package Neolution.Extensions.Configuration.GoogleSecrets`
+`dotnet add package Csag.Extensions.Configuration.GoogleSecrets`
 
 Add the custom configuration provider to your `IHostBuilder `:
 
@@ -24,6 +31,30 @@ public static IHostBuilder CreateHostBuilder(string[] args)
             });
         });
 }
+```
+
+If `ProjectName` is not set, the provider reads the project from the environment variable `GOOGLE_SECRETS_PROJECT`. Without a project it logs a warning and loads no secrets.
+
+### ASP.NET Core
+
+For an ASP.NET Core application, install the ASP.NET Core package:
+`dotnet add package Csag.Extensions.Configuration.GoogleSecrets.AspNetCore`
+
+Then add the provider to the `WebApplicationBuilder`:
+
+```c#
+using Csag.Extensions.Configuration.GoogleSecrets.AspNetCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Reads the project from the environment variable GOOGLE_SECRETS_PROJECT.
+builder.AddGoogleSecrets();
+
+// Or with options:
+builder.AddGoogleSecrets(options =>
+{
+    options.ProjectName = "your-project-id";
+});
 ```
 
 ## Options
@@ -117,7 +148,7 @@ System.IO.IOException: Error loading native library "/app/runtimes/linux-x64/nat
          at Google.Api.Gax.Grpc.ChannelPool.GetChannel(GrpcAdapter grpcAdapter, String endpoint, GrpcChannelOptions channelOptions)
          at Google.Api.Gax.Grpc.ClientBuilderBase`1.CreateCallInvoker()
          at Google.Cloud.SecretManager.V1.SecretManagerServiceClientBuilder.BuildImpl()
-         at Neolution.Extensions.Configuration.GoogleSecrets.GoogleSecretsProvider.Load()
+         at Csag.Extensions.Configuration.GoogleSecrets.GoogleSecretsProvider.Load()
 ```
 
 To fix it you need to add the following to your `Dockerfile` to manaully build the missing library:
@@ -159,3 +190,63 @@ COPY --from=docker.io/your-grpc-build-image /out/libgrpc_csharp_ext.so /app/libg
 ```
 
 ref: https://github.com/grpc/grpc/issues/21446
+
+## Build
+
+Prerequisites:
+
+- The .NET SDK pinned in [global.json](global.json) (10.0.4xx, a newer 10.0 SDK rolls forward).
+- Node.js 24 with Corepack, for the changesets tooling: run `corepack enable` and then `pnpm install` once in the repository root.
+
+```bash
+dotnet restore --locked-mode
+dotnet build --configuration Release --no-restore
+dotnet pack --configuration Release --no-build -o ./nupkgs
+```
+
+Every project has a `packages.lock.json`, and CI restores in locked mode. After changing a package reference, run `dotnet restore` without `--locked-mode` and commit the updated lock files.
+
+## Preview packages
+
+Each pull request to `main` or to a `release/**` branch publishes both packages to a public preview feed on feedz.io. A draft PR, a PR from a fork and a PR from Dependabot publish no preview. The version is one patch above the current release, for example `2.0.1-pr.42.183` (PR 42, workflow run 183). The **"chore: version packages"** PR publishes a release candidate of the upcoming version instead, for example `2.1.0-pr.73.190`, so the changes of the next release can be tested before it ships. In prerelease mode the version in `package.json` is a prerelease such as `3.0.0-rc.0`, and the preview extends it, for example `3.0.0-rc.0.pr.42.183`. That version sorts after the prerelease and before the next one. A comment on the PR gives the version of its latest push. The feed removes previews after 30 days. Releases go to nuget.org only.
+
+To use a preview in an application, add the feed to the `nuget.config` of the application. The feed needs no credentials:
+
+```xml
+<packageSources>
+  <clear />
+  <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+  <add key="csag-extensions-configuration-googlesecrets-previews" value="https://f.feedz.io/collana-solutions/csag-extensions-configuration-googlesecrets/nuget/index.json" />
+</packageSources>
+<packageSourceMapping>
+  <packageSource key="nuget.org">
+    <package pattern="*" />
+    <package pattern="Csag.Extensions.Configuration.GoogleSecrets*" />
+  </packageSource>
+  <packageSource key="csag-extensions-configuration-googlesecrets-previews">
+    <package pattern="Csag.Extensions.Configuration.GoogleSecrets*" />
+  </packageSource>
+</packageSourceMapping>
+```
+
+The `Csag.Extensions.Configuration.GoogleSecrets*` pattern is also necessary under nuget.org. NuGet looks for a package only in the sources of its most specific pattern, so without it the released versions do not restore.
+
+To test a preview:
+
+1. Set every `Csag.Extensions.Configuration.GoogleSecrets*` package to the preview version.
+2. If the application restores in locked mode, update its `packages.lock.json` files.
+3. Add the feed only on the branch that tests the preview. The main branch of the application then does not need feedz.io to restore.
+
+## Release process
+
+This repository follows the [collana-solutions release playbook](https://github.com/collana-solutions/release-playbook) (Changesets, NuGet variant):
+
+1. Every PR that changes a package needs a changeset. Run `pnpm changeset`, pick the packages the change affects, choose the bump type and describe the change for consumers of the packages. The two packages are a fixed group, so they always share one version. A change that ships nothing, such as CI or repository documentation, needs an empty changeset: `pnpm changeset --empty`. CI's **Changeset Check** fails a PR without one.
+2. On merge to `main`, the Release workflow keeps a **"chore: version packages"** PR up to date. It bumps the versions in the `package.json` files, writes them into the `.csproj` files with `scripts/sync-versions.mjs` and updates the `CHANGELOG.md` files.
+3. Merging that PR creates the git tags and the GitHub Releases. The release of `Csag.Extensions.Configuration.GoogleSecrets` starts the **NuGet Publish** workflow, which packs both packages and pushes them to nuget.org through trusted publishing. To publish an existing release again, for example after a failed push, run **NuGet Publish** from the Actions tab with that release tag.
+
+Dependabot PRs get their changesets automatically. Do not edit the `CHANGELOG.md` files or the `<Version>` in the `.csproj` files by hand.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
