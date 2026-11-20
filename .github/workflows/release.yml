@@ -141,7 +141,7 @@ jobs:
             const publishedNames = new Set(published.map(p => p.name));
             const prevTag = tags
               .map(t => {
-                const match = t.name.match(/^(?:(.+)@|v)?(\d+)\.(\d+)\.(\d+)$/);
+                const match = t.name.match(/^(?:(.+)@|v)(\d+)\.(\d+)\.(\d+)$/);
                 if (!match || (match[1] !== undefined && !publishedNames.has(match[1]))) return null;
                 return { tag: t, version: [match[2], match[3], match[4]].map(Number) };
               })
