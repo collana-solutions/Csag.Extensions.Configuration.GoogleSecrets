@@ -1,11 +1,11 @@
-﻿namespace Neolution.Extensions.Configuration.GoogleSecrets
+﻿namespace Csag.Extensions.Configuration.GoogleSecrets
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Configuration;
-    using static Neolution.Extensions.Configuration.GoogleSecrets.GoogleSecretsOptions;
+    using static Csag.Extensions.Configuration.GoogleSecrets.GoogleSecretsOptions;
 
     /// <summary>
     /// The Google Secrets Source

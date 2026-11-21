@@ -1,13 +1,9 @@
-# Changelog
+# @collana-solutions/csag-extensions-configuration-googlesecrets
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and adheres to a project-specific [Versioning](/README.md).
-
-## [Unreleased]
-
-- Add LICENSE file
 
 ## [1.6.0] - 2025-04-24
 
@@ -57,7 +53,6 @@ Added support for the `{GoogleSecret:SecretName:SecretVersion}` syntax to overri
 
 - Changelog
 
-[unreleased]: https://github.com/neolution-ch/Neolution.Extensions.Configuration.GoogleSecrets/compare/1.6.0...HEAD
 [1.6.0]: https://github.com/neolution-ch/Neolution.Extensions.Configuration.GoogleSecrets/compare/1.5.0...1.6.0
 [1.5.0]: https://github.com/neolution-ch/Neolution.Extensions.Configuration.GoogleSecrets/compare/1.4.0...1.5.0
 [1.4.0]: https://github.com/neolution-ch/Neolution.Extensions.Configuration.GoogleSecrets/compare/1.3.1...1.4.0

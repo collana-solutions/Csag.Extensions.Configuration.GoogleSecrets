@@ -36,6 +36,10 @@ msbuild.wrn
 # Visual Studio 2015
 .vs/
 
-package.json
-yarn.lock
 **/node_modules/
+
+# Changesets internal cache
+.changeset/.cache/
+
+# Local NuGet pack output
+nupkgs/

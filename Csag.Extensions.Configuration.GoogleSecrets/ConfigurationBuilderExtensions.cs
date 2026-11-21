@@ -1,4 +1,4 @@
-﻿namespace Neolution.Extensions.Configuration.GoogleSecrets
+﻿namespace Csag.Extensions.Configuration.GoogleSecrets
 {
     using System;
     using Microsoft.Extensions.Configuration;
