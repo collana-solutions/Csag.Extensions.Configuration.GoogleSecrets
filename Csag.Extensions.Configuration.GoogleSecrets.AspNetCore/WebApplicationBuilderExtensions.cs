@@ -1,4 +1,4 @@
-﻿namespace Neolution.Extensions.Configuration.GoogleSecrets.AspNetCore
+﻿namespace Csag.Extensions.Configuration.GoogleSecrets.AspNetCore
 {
     using System;
     using Microsoft.AspNetCore.Builder;
